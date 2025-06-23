@@ -28,6 +28,6 @@ int main(/*int argc,char** argv*/){
 	vm.variable_stack = variables;
 	vm.frame_stack = frames;
 
-	debug_sandal_bytecode(bytecode,&vm);
+	run_sandal_bytecode(bytecode,&vm);
 	return 0;
 }

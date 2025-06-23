@@ -96,107 +96,109 @@ static void _sandal_ptr(sandal_vm *__restrict__ vm);
 static void _sandal_reset(sandal_vm *__restrict__ vm);
 static void _sandal_kill(sandal_vm *__restrict__ vm);
 
+typedef void (*instruction_handler)(sandal_vm*);
+
+static const instruction_handler call_table[256] = {
+		[opnop] = _sandal_nop,
+		[opmov] = _sandal_mov,
+		[opmovl] = _sandal_movl,
+
+		[opjmp] = _sandal_jmp,
+		[opjez] = _sandal_jez,
+		[opjgz] = _sandal_jgz,
+		[opjlz] = _sandal_jlz,
+		[opjezr] = _sandal_jezr,
+		[opjgzr] = _sandal_jgzr,
+		[opjlzr] = _sandal_jlzr,
+		[opje] = _sandal_je,
+		[opjg] = _sandal_jg,
+		[opjl] = _sandal_jl,
+		[opjer] = _sandal_jer,
+		[opjgr] = _sandal_jgr,
+		[opjlr] = _sandal_jlr,
+
+		[opadd] = _sandal_add,
+		[opsub] = _sandal_sub,
+		[opmul] = _sandal_mul,
+		[opdiv] = _sandal_div,
+		[opmod] = _sandal_mod,
+		[opand] = _sandal_and,
+		[opor] = _sandal_or,
+		[opxor] = _sandal_xor,
+		[opshl] = _sandal_shl,
+		[opshr] = _sandal_shr,
+		[oppow] = _sandal_pow,
+		[opsqrt] = _sandal_sqrt,
+		[opinv] = _sandal_inv,
+		[opneg] = _sandal_neg,
+		[opinc] = _sandal_inc,
+		[opdec] = _sandal_dec,
+
+		[opcadd] = _sandal_cadd,
+		[opcsub] = _sandal_csub,
+		[opcmul] = _sandal_cmul,
+		[opcdiv] = _sandal_cdiv,
+		[opcmod] = _sandal_cmod,
+		[opcand] = _sandal_cand,
+		[opcor] = _sandal_cor,
+		[opcxor] = _sandal_cxor,
+		[opcshl] = _sandal_cshl,
+		[opcshr] = _sandal_cshr,
+		[opcpow] = _sandal_cpow,
+		[opcsqrt] = _sandal_csqrt,
+
+		[oppush] = _sandal_push,
+		[oppushl] = _sandal_pushl,
+		[oppop] = _sandal_pop,
+		[oppeek] = _sandal_peek,
+		[oppeekt] = _sandal_peekt,
+		[opdup] = _sandal_dup,
+		[opswap] = _sandal_swap,
+		[opdrop] = _sandal_drop,
+		[opaddst] = _sandal_addst,
+		[opsubst] = _sandal_subst,
+		[opmulst] = _sandal_mulst,
+		[opdivst] = _sandal_divst,
+		[opmodst] = _sandal_modst,
+		[opandst] = _sandal_andst,
+		[oporst] = _sandal_orst,
+		[opxorst] = _sandal_xorst,
+
+		[opcall] = _sandal_call,
+		[opcalll] = _sandal_calll,
+		[opreturn] = _sandal_return,
+		[opvalloc] = _sandal_valloc,
+		[opgetvar] = _sandal_getvar,
+		[opgethvar] = _sandal_gethvar,
+		[opsetvar] = _sandal_setvar,
+		[opsetvarl] = _sandal_setvarl,
+		[opsethvar] = _sandal_sethvar,
+		[opsethvarl] = _sandal_sethvarl,
+		[oppushvar] = _sandal_pushvar,
+		[oppushhvar] = _sandal_pushhvar,
+		[oppopvar] = _sandal_popvar,
+		[oppophvar] = _sandal_pophvar,
+		[opmovvar] = _sandal_movvar,
+		[opmovhvar] = _sandal_movhvar,
+
+		[opsyscall] = _sandal_syscall,
+
+		[opptr] = _sandal_ptr,
+		[opreset] = _sandal_reset,
+
+		[opeos] _sandal_kill,
+		[opkill] _sandal_kill,
+};
+
 //--------------------------------------------------------------------------------------------
 
 void sandal_step(sandal_vm *vm){
-	switch(vm->bytecode[vm->program_counter]){
-		case opnop: _sandal_nop(vm); break;
-		case opmov: _sandal_mov(vm); break;
-		case opmovl: _sandal_movl(vm); break;
-
-		case opjmp: _sandal_jmp(vm); break;
-		case opjez: _sandal_jez(vm); break;
-		case opjgz: _sandal_jgz(vm); break;
-		case opjlz: _sandal_jlz(vm); break;
-		case opjezr: _sandal_jezr(vm); break;
-		case opjgzr: _sandal_jgzr(vm); break;
-		case opjlzr: _sandal_jlzr(vm); break;
-		case opje: _sandal_je(vm); break;
-		case opjg: _sandal_jg(vm); break;
-		case opjl: _sandal_jl(vm); break;
-		case opjer: _sandal_jer(vm); break;
-		case opjgr: _sandal_jgr(vm); break;
-		case opjlr: _sandal_jlr(vm); break;
-
-		case opadd: _sandal_add(vm); break;
-		case opsub: _sandal_sub(vm); break;
-		case opmul: _sandal_mul(vm); break;
-		case opdiv: _sandal_div(vm); break;
-		case opmod: _sandal_mod(vm); break;
-		case opand:  _sandal_and(vm); break;
-		case opor:  _sandal_or(vm); break;
-		case opxor: _sandal_xor(vm); break;
-		case opshl: _sandal_shl(vm); break;
-		case opshr: _sandal_shr(vm); break;
-		case oppow: _sandal_pow(vm); break;
-		case opsqrt: _sandal_sqrt(vm); break;
-		case opinv: _sandal_inv(vm); break;
-		case opneg: _sandal_neg(vm); break;
-		case opinc: _sandal_inc(vm); break;
-		case opdec: _sandal_dec(vm); break;
-
-		case opcadd:  _sandal_cadd(vm); break;
-		case opcsub:  _sandal_csub(vm); break;
-		case opcmul:  _sandal_cmul(vm); break;
-		case opcdiv:  _sandal_cdiv(vm); break;
-		case opcmod:  _sandal_cmod(vm); break;
-		case opcand:  _sandal_cand(vm); break;
-		case opcor:   _sandal_cor(vm);  break;
-		case opcxor:  _sandal_cxor(vm); break;
-		case opcshl:  _sandal_cshl(vm); break;
-		case opcshr:  _sandal_cshr(vm); break;
-		case opcpow:  _sandal_cpow(vm); break;
-		case opcsqrt: _sandal_csqrt(vm); break;
-
-		case oppush: _sandal_push(vm); break;
-		case oppushl: _sandal_pushl(vm); break;
-		case oppop: _sandal_pop(vm); break;
-		case oppeek: _sandal_peek(vm); break;
-		case oppeekt: _sandal_peekt(vm); break;
-		case opdup: _sandal_dup(vm); break;
-		case opswap: _sandal_swap(vm); break;
-		case opdrop: _sandal_drop(vm); break;
-		case opaddst: _sandal_addst(vm); break;
-		case opsubst: _sandal_subst(vm); break;
-		case opmulst: _sandal_mulst(vm); break;
-		case opdivst: _sandal_divst(vm); break;
-		case opmodst: _sandal_modst(vm); break;
-		case opandst: _sandal_andst(vm); break;
-		case oporst: _sandal_orst(vm); break;
-		case opxorst: _sandal_xorst(vm); break;
-
-		case opcall: _sandal_call(vm); break;
-		case opcalll: _sandal_calll(vm); break;
-		case opreturn: _sandal_return(vm); break;
-		case opvalloc: _sandal_valloc(vm); break;
-		case opgetvar: _sandal_getvar(vm); break;
-		case opgethvar: _sandal_gethvar(vm); break;
-		case opsetvar: _sandal_setvar(vm); break;
-		case opsetvarl: _sandal_setvarl(vm); break;
-		case opsethvar: _sandal_sethvar(vm); break;
-		case opsethvarl: _sandal_sethvarl(vm); break;
-		case oppushvar: _sandal_pushvar(vm); break;
-		case oppushhvar: _sandal_pushhvar(vm); break;
-		case oppopvar: _sandal_popvar(vm); break;
-		case oppophvar: _sandal_pophvar(vm); break;
-		case opmovvar: _sandal_movvar(vm); break;
-		case opmovhvar: _sandal_movhvar(vm); break;
-
-		case opsyscall: _sandal_syscall(vm); break;
-
-		case opptr: _sandal_ptr(vm); break;
-		case opreset: _sandal_reset(vm); break;
-
-		case opeos:
-		case opkill:
-		default:
-			_sandal_kill(vm);
-			break;
-	}
+	call_table[vm->bytecode[vm->program_counter]](vm);
 }
 
 void run_sandal_bytecode(uint8_t *bytecode, sandal_vm *vm){
 	vm->bytecode = bytecode;
+	vm->status = 1;
 	do{
 		sandal_step(vm);
 	}while(vm->status);
